@@ -1,0 +1,94 @@
+graph TB
+    subgraph "Atores Externos"
+        USER["👤 Usuário/Admin"]
+        SUPPLIER["🏭 Fornecedor"]
+        SYSTEM["⚙️ Sistema ERP"]
+    end
+
+    subgraph "Processos"
+        P1["1.0 Cadastrar Produto"]
+        P2["2.0 Registrar Entrada de Estoque"]
+        P3["3.0 Registrar Saída de Estoque"]
+        P4["4.0 Calcular Estoque Disponível"]
+        P5["5.0 Verificar Estoque Baixo"]
+        P6["6.0 Gerar Alerta de Reposição"]
+        P7["7.0 Gerar Relatório de Estoque"]
+    end
+
+    subgraph "Armazenamento de Dados"
+        D1["🗄️ Tabela: products"]
+        D2["🗄️ Tabela: stock_movements"]
+        D3["🗄️ Tabela: audit_logs"]
+    end
+
+    subgraph "Fluxos de Dados"
+        DF1["Dados do Produto"]
+        DF2["Movimento de Entrada"]
+        DF3["Movimento de Saída"]
+        DF4["Quantidade em Estoque"]
+        DF5["Alertas de Estoque"]
+        DF6["Relatório de Estoque"]
+    end
+
+    %% Conexões de Atores para Processos
+    USER -->|Solicita Cadastro| P1
+    USER -->|Registra Entrada| P2
+    USER -->|Registra Saída| P3
+    SYSTEM -->|Consulta Estoque| P4
+    SYSTEM -->|Verifica Limite| P5
+    USER -->|Solicita Relatório| P7
+
+    %% Conexões de Processos para Armazenamento
+    P1 -->|Armazena| D1
+    P2 -->|Registra| D2
+    P3 -->|Registra| D2
+    P1 -->|Auditoria| D3
+    P2 -->|Auditoria| D3
+    P3 -->|Auditoria| D3
+
+    %% Conexões de Armazenamento para Processos
+    D1 -->|Recupera| P2
+    D1 -->|Recupera| P3
+    D1 -->|Recupera| P4
+    D1 -->|Recupera| P5
+    D2 -->|Calcula| P4
+    D1 -->|Consulta| P7
+    D2 -->|Consulta| P7
+
+    %% Fluxos de Saída
+    P1 -->|Confirmação| DF1
+    P2 -->|Confirmação| DF2
+    P3 -->|Confirmação| DF3
+    P4 -->|Quantidade| DF4
+    P5 -->|Alerta| DF5
+    P6 -->|Notificação| DF5
+    P7 -->|Relatório| DF6
+
+    %% Saídas para Usuário
+    DF1 -->|Exibe| USER
+    DF2 -->|Exibe| USER
+    DF3 -->|Exibe| USER
+    DF4 -->|Consulta| USER
+    DF5 -->|Notifica| USER
+    DF6 -->|Exibe| USER
+
+    %% Conexão de Verificação de Estoque Baixo
+    P4 -->|Verifica| P5
+    P5 -->|Gera| P6
+    P6 -->|Notifica| USER
+
+    style P1 fill:#e1f5ff
+    style P2 fill:#e1f5ff
+    style P3 fill:#e1f5ff
+    style P4 fill:#fff3e0
+    style P5 fill:#fff3e0
+    style P6 fill:#f3e5f5
+    style P7 fill:#e8f5e9
+
+    style D1 fill:#fce4ec
+    style D2 fill:#fce4ec
+    style D3 fill:#fce4ec
+
+    style USER fill:#c8e6c9
+    style SUPPLIER fill:#bbdefb
+    style SYSTEM fill:#ffe0b2

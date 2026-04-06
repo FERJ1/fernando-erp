@@ -1,0 +1,27 @@
+{
+  "version": "7",
+  "dialect": "mysql",
+  "entries": [
+    {
+      "idx": 0,
+      "version": "5",
+      "when": 1768257032641,
+      "tag": "0000_gigantic_next_avengers",
+      "breakpoints": true
+    },
+    {
+      "idx": 1,
+      "version": "5",
+      "when": 1768257175576,
+      "tag": "0001_fast_luke_cage",
+      "breakpoints": true
+    },
+    {
+      "idx": 2,
+      "version": "5",
+      "when": 1768259509611,
+      "tag": "0002_square_stepford_cuckoos",
+      "breakpoints": true
+    }
+  ]
+}
