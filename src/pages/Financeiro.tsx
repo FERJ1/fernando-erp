@@ -89,7 +89,7 @@ function TransactionFormFields({ form, onChange }: { form: TransactionFormData; 
         </div>
         <div className="grid gap-2">
           <Label>Status</Label>
-          <Select value={form.status} onValueChange={v => set({ status: v as TransactionForm["status"] })}>
+          <Select value={form.status} onValueChange={v => set({ status: v as TransactionFormData["status"] })}>
             <SelectTrigger><SelectValue /></SelectTrigger>
             <SelectContent>
               <SelectItem value="pending">Pendente</SelectItem>
@@ -146,22 +146,22 @@ function FinanceiroContent() {
 
   const createMutation = trpc.financial.create.useMutation({
     onSuccess: () => { toast.success("Transação criada!"); setIsCreateOpen(false); setForm({ ...emptyForm }); utils.financial.list.invalidate(); utils.dashboard.stats.invalidate(); },
-    onError: e => toast.error(e.message),
+    onError: (e: Error) => toast.error(e.message),
   });
 
   const updateMutation = trpc.financial.update.useMutation({
     onSuccess: () => { toast.success("Transação atualizada!"); setEditingId(null); utils.financial.list.invalidate(); },
-    onError: e => toast.error(e.message),
+    onError: (e: Error) => toast.error(e.message),
   });
 
   const deleteMutation = trpc.financial.delete.useMutation({
     onSuccess: () => { toast.success("Transação removida!"); utils.financial.list.invalidate(); utils.dashboard.stats.invalidate(); },
-    onError: e => toast.error(e.message),
+    onError: (e: Error) => toast.error(e.message),
   });
 
   const markPaidMutation = trpc.financial.markAsPaid.useMutation({
     onSuccess: () => { toast.success("Marcado como pago!"); utils.financial.list.invalidate(); utils.dashboard.stats.invalidate(); },
-    onError: e => toast.error(e.message),
+    onError: (e: Error) => toast.error(e.message),
   });
 
   // Filtragem local por busca (descrição, categoria)
