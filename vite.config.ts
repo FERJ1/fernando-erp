@@ -2,8 +2,8 @@ import { defineConfig } from "vite";
 import react from "@vitejs/plugin-react";
 import path from "path";
 
-export default defineConfig({
-  base: "/fernando-erp/",
+export default defineConfig(({ command }) => ({
+  base: command === "build" ? "/fernando-erp/" : "/",
   plugins: [react()],
   resolve: {
     alias: {
@@ -14,4 +14,4 @@ export default defineConfig({
     port: 5173,
     host: true,
   },
-});
+}));
