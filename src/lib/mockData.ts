@@ -1,17 +1,51 @@
 /**
- * Mock data para simular backend tRPC
- * Dados realistas de um ERP brasileiro - Confeccao Textil Personalizada
+ * Mock data com persistência localStorage
+ * Dados salvos no navegador — sobrevivem a refresh/fechar aba
+ * Para resetar: localStorage.clear() no console do navegador
  */
 
-// ─── Usuarios ──────────────────────────────────────────────────────────────
-export const mockUsers = [
+// ─── Helpers de persistência ─────────────────────────────────────────────────
+
+function load<T>(key: string, fallback: T): T {
+  try {
+    const raw = localStorage.getItem(`erp_${key}`);
+    if (raw) return JSON.parse(raw);
+  } catch { /* ignore */ }
+  return fallback;
+}
+
+function save(key: string, data: any) {
+  try {
+    localStorage.setItem(`erp_${key}`, JSON.stringify(data));
+  } catch { /* ignore */ }
+}
+
+function loadCounter(key: string, fallback: number): number {
+  try {
+    const raw = localStorage.getItem(`erp_counter_${key}`);
+    if (raw) return JSON.parse(raw);
+  } catch { /* ignore */ }
+  return fallback;
+}
+
+function saveCounter(key: string, value: number) {
+  try {
+    localStorage.setItem(`erp_counter_${key}`, JSON.stringify(value));
+  } catch { /* ignore */ }
+}
+
+// ─── Dados padrão (seed inicial) ─────────────────────────────────────────────
+
+const now = new Date();
+const daysAgo = (d: number) => new Date(now.getTime() - d * 86400000).toISOString();
+
+const DEFAULT_USERS = [
   { id: 1, name: "Fernando Silva", email: "fernando@empresa.com" },
   { id: 2, name: "Ana Costa", email: "ana@empresa.com" },
   { id: 3, name: "Carlos Oliveira", email: "carlos@empresa.com" },
 ];
 
-// ─── Categorias ───────────────────────────────────────────────────────────
-export let mockCategories = [
+const DEFAULT_CATEGORIES = [
   { id: 1, name: "Camisetas", description: "Camisetas personalizadas em diversos tamanhos", isActive: true, createdAt: new Date("2025-01-10").toISOString() },
   { id: 2, name: "Guardanapos", description: "Guardanapos de tecido personalizados para eventos e restaurantes", isActive: true, createdAt: new Date("2025-01-10").toISOString() },
   { id: 3, name: "Toalhas", description: "Toalhas de mesa e banho personalizadas", isActive: true, createdAt: new Date("2025-01-10").toISOString() },
@@ -20,10 +54,7 @@ export let mockCategories = [
   { id: 6, name: "Personalizados", description: "Produtos texteis sob medida e projetos especiais", isActive: true, createdAt: new Date("2025-02-01").toISOString() },
 ];
 
-let nextCategoryId = 7;
-
-// ─── Clientes ──────────────────────────────────────────────────────────────
-export let mockCustomers = [
+const DEFAULT_CUSTOMERS = [
   { id: 1, name: "Boutique Fios de Ouro", email: "compras@fiosdeouro.com.br", phone: "(11) 99999-1234", type: "PJ" as const, document: "12.345.678/0001-90", address: "Rua Augusta, 1500", city: "São Paulo", state: "SP", notes: "Cliente VIP - coleções exclusivas", isActive: true },
   { id: 2, name: "Restaurante Sabor & Arte", email: "chef@saborarte.com", phone: "(11) 98765-4321", type: "PJ" as const, document: "23.456.789/0001-01", address: "Av. Paulista, 2000", city: "São Paulo", state: "SP", notes: "Pedidos recorrentes de guardanapos", isActive: true },
   { id: 3, name: "Eventos Premium Ltda", email: "contato@eventospremium.com.br", phone: "(21) 99876-5432", type: "PJ" as const, document: "34.567.890/0001-12", address: "Rua Visconde de Pirajá, 330", city: "Rio de Janeiro", state: "RJ", notes: "Eventos corporativos de grande porte", isActive: true },
@@ -36,10 +67,7 @@ export let mockCustomers = [
   { id: 10, name: "Loja Estilo Radical", email: "vendas@estiloradical.com", phone: "(61) 91098-7654", type: "PJ" as const, document: "01.234.567/0001-89", address: "SCS Quadra 7", city: "Brasília", state: "DF", notes: "Inativo - inadimplente", isActive: false },
 ];
 
-let nextCustomerId = 11;
-
-// ─── Produtos ──────────────────────────────────────────────────────────────
-export let mockProducts = [
+const DEFAULT_PRODUCTS = [
   { id: 1, name: "Camiseta Personalizada Tam P", sku: "CAM-P-001", price: "49.90", salePrice: "49.90", costPrice: "18.00", stockQuantity: 120, minStockLevel: 30, category: "Camisetas", categoryId: 1, unit: "un", description: "Camiseta algodao 100% personalizada sublimacao tamanho P", isActive: true },
   { id: 2, name: "Camiseta Personalizada Tam M", sku: "CAM-M-001", price: "49.90", salePrice: "49.90", costPrice: "18.50", stockQuantity: 200, minStockLevel: 50, category: "Camisetas", categoryId: 1, unit: "un", description: "Camiseta algodao 100% personalizada sublimacao tamanho M", isActive: true },
   { id: 3, name: "Camiseta Personalizada Tam G", sku: "CAM-G-001", price: "54.90", salePrice: "54.90", costPrice: "19.00", stockQuantity: 150, minStockLevel: 40, category: "Camisetas", categoryId: 1, unit: "un", description: "Camiseta algodao 100% personalizada sublimacao tamanho G", isActive: true },
@@ -56,13 +84,7 @@ export let mockProducts = [
   { id: 14, name: "Toalha de Banho Sublimada", sku: "TWL-BN-001", price: "79.90", salePrice: "79.90", costPrice: "28.00", stockQuantity: 25, minStockLevel: 10, category: "Toalhas", categoryId: 3, unit: "un", description: "Toalha de banho 70x140cm sublimacao total", isActive: true },
 ];
 
-let nextProductId = 15;
-
-// ─── Pedidos ──────────────────────────────────────────────────────────────
-const now = new Date();
-const daysAgo = (d: number) => new Date(now.getTime() - d * 86400000).toISOString();
-
-export let mockOrders = [
+const DEFAULT_ORDERS = [
   {
     id: 1, orderNumber: "PED-001", customerId: 2, customerName: "Restaurante Sabor & Arte",
     status: "delivered" as const, paymentStatus: "paid" as const,
@@ -151,10 +173,7 @@ export let mockOrders = [
   },
 ];
 
-let nextOrderId = 9;
-
-// ─── Transacoes Financeiras ────────────────────────────────────────────────
-export let mockTransactions = [
+const DEFAULT_TRANSACTIONS = [
   { id: 1, type: "income" as const, category: "Vendas", description: "Venda guardanapos e toalhas - Restaurante Sabor & Arte (PED-001)", amount: "2189.00", status: "paid" as const, dueDate: daysAgo(20), paidDate: daysAgo(19), paymentMethod: "PIX", notes: "", createdAt: daysAgo(25) },
   { id: 2, type: "income" as const, category: "Vendas", description: "Venda camisetas e bandanas - Eventos Premium (PED-002)", amount: "7130.00", status: "paid" as const, dueDate: daysAgo(18), paidDate: daysAgo(18), paymentMethod: "Boleto", notes: "", createdAt: daysAgo(22) },
   { id: 3, type: "income" as const, category: "Vendas", description: "Venda guardanapos e toalhas casamento - Buffet Festa Completa (PED-003)", amount: "5028.50", status: "paid" as const, dueDate: daysAgo(12), paidDate: daysAgo(11), paymentMethod: "Transferencia", notes: "", createdAt: daysAgo(15) },
@@ -175,10 +194,7 @@ export let mockTransactions = [
   { id: 18, type: "expense" as const, category: "Fornecedores", description: "Manutencao prensa termica e maquina de bordar", amount: "950.00", status: "paid" as const, dueDate: daysAgo(6), paidDate: daysAgo(5), paymentMethod: "PIX", notes: "", createdAt: daysAgo(8) },
 ];
 
-let nextTransactionId = 19;
-
-// ─── Logs de auditoria ─────────────────────────────────────────────────────
-export const mockAuditLogs = [
+const DEFAULT_AUDIT_LOGS = [
   { id: 1, userId: 1, action: "create", entity: "product", entityId: 1, details: '{"name":"Camiseta Personalizada Tam P","amount":"49.90"}', createdAt: daysAgo(30) },
   { id: 2, userId: 1, action: "create", entity: "customer", entityId: 1, details: '{"name":"Boutique Fios de Ouro"}', createdAt: daysAgo(28) },
   { id: 3, userId: 2, action: "create", entity: "order", entityId: 1, details: '{"orderNumber":"PED-001","status":"pending"}', createdAt: daysAgo(25) },
@@ -197,7 +213,42 @@ export const mockAuditLogs = [
   { id: 16, userId: 2, action: "update_status", entity: "order", entityId: 5, details: '{"status":"in_production"}', createdAt: daysAgo(0.5) },
 ];
 
+// ─── Estado ativo (carrega do localStorage ou usa defaults) ──────────────────
+
+export const mockUsers = DEFAULT_USERS;
+export let mockCategories = load("categories", DEFAULT_CATEGORIES);
+export let mockCustomers = load("customers", DEFAULT_CUSTOMERS);
+export let mockProducts = load("products", DEFAULT_PRODUCTS);
+export let mockOrders = load("orders", DEFAULT_ORDERS);
+export let mockTransactions = load("transactions", DEFAULT_TRANSACTIONS);
+export let mockAuditLogs = load("auditLogs", DEFAULT_AUDIT_LOGS);
+
+let nextCategoryId = loadCounter("categoryId", 7);
+let nextCustomerId = loadCounter("customerId", 11);
+let nextProductId = loadCounter("productId", 15);
+let nextOrderId = loadCounter("orderId", 9);
+let nextTransactionId = loadCounter("transactionId", 19);
+let nextAuditLogId = loadCounter("auditLogId", 17);
+
+// ─── Audit log helper ────────────────────────────────────────────────────────
+
+function addAuditLog(action: string, entity: string, entityId: number | null, details: string) {
+  const log = {
+    id: nextAuditLogId++,
+    userId: 1,
+    action,
+    entity,
+    entityId,
+    details,
+    createdAt: new Date().toISOString(),
+  };
+  mockAuditLogs = [log, ...mockAuditLogs];
+  save("auditLogs", mockAuditLogs);
+  saveCounter("auditLogId", nextAuditLogId);
+}
+
 // ─── Dashboard Stats ───────────────────────────────────────────────────────
+
 export function getDashboardStats() {
   const incomeTransactions = mockTransactions.filter(t => t.type === "income");
   const expenseTransactions = mockTransactions.filter(t => t.type === "expense");
@@ -228,40 +279,45 @@ export function getDashboardStats() {
 }
 
 export function getTopProducts() {
-  return [
-    { productId: 2, productName: "Camiseta Personalizada Tam M", totalQuantity: 150, totalRevenue: "7485.00" },
-    { productId: 5, productName: "Guardanapo de Tecido 40x40cm", totalQuantity: 150, totalRevenue: "1935.00" },
-    { productId: 3, productName: "Camiseta Personalizada Tam G", totalQuantity: 90, totalRevenue: "4941.00" },
-    { productId: 6, productName: "Guardanapo de Tecido 50x50cm", totalQuantity: 200, totalRevenue: "3380.00" },
-    { productId: 11, productName: "Bandana Personalizada 55x55cm", totalQuantity: 140, totalRevenue: "2786.00" },
-    { productId: 1, productName: "Camiseta Personalizada Tam P", totalQuantity: 50, totalRevenue: "2495.00" },
-    { productId: 10, productName: "Avental Churrasqueiro Premium", totalQuantity: 20, totalRevenue: "1198.00" },
-    { productId: 9, productName: "Avental de Cozinha Personalizado", totalQuantity: 55, totalRevenue: "2194.50" },
-    { productId: 8, productName: "Toalha de Mesa Retangular 2.0m", totalQuantity: 15, totalRevenue: "1648.50" },
-    { productId: 13, productName: "Sacola Ecobag Personalizada", totalQuantity: 100, totalRevenue: "2490.00" },
-  ];
+  // Calcula dinamicamente baseado nos pedidos reais
+  const productMap = new Map<number, { productName: string; totalQuantity: number; totalRevenue: number }>();
+  for (const order of mockOrders) {
+    for (const item of order.items) {
+      const existing = productMap.get(item.productId) ?? { productName: item.productName, totalQuantity: 0, totalRevenue: 0 };
+      existing.totalQuantity += item.quantity;
+      existing.totalRevenue += parseFloat(item.total);
+      productMap.set(item.productId, existing);
+    }
+  }
+  return Array.from(productMap.entries())
+    .map(([productId, data]) => ({ productId, ...data, totalRevenue: data.totalRevenue.toFixed(2) }))
+    .sort((a, b) => b.totalRevenue.localeCompare(a.totalRevenue));
 }
 
 export function getTopCustomers() {
-  return [
-    { customerId: 3, orderCount: 4, totalSpent: "7130.00" },
-    { customerId: 4, orderCount: 3, totalSpent: "7680.00" },
-    { customerId: 5, orderCount: 3, totalSpent: "5028.50" },
-    { customerId: 1, orderCount: 2, totalSpent: "5190.00" },
-    { customerId: 8, orderCount: 2, totalSpent: "5042.00" },
-  ];
+  const customerMap = new Map<number, { orderCount: number; totalSpent: number }>();
+  for (const order of mockOrders) {
+    const existing = customerMap.get(order.customerId) ?? { orderCount: 0, totalSpent: 0 };
+    existing.orderCount++;
+    existing.totalSpent += parseFloat(order.totalAmount);
+    customerMap.set(order.customerId, existing);
+  }
+  return Array.from(customerMap.entries())
+    .map(([customerId, data]) => ({ customerId, ...data, totalSpent: data.totalSpent.toFixed(2) }))
+    .sort((a, b) => parseFloat(b.totalSpent) - parseFloat(a.totalSpent));
 }
 
 export function getSalesReport(startDate: Date, endDate: Date) {
   const days: { date: string; totalSales: string; orderCount: number }[] = [];
   const current = new Date(startDate);
   while (current <= endDate) {
-    const sales = Math.random() * 8000 + 500;
-    const orders = Math.floor(Math.random() * 8) + 1;
+    const dateStr = current.toISOString().split("T")[0];
+    const dayOrders = mockOrders.filter(o => o.createdAt.startsWith(dateStr));
+    const totalSales = dayOrders.reduce((s, o) => s + parseFloat(o.totalAmount), 0);
     days.push({
       date: current.toISOString(),
-      totalSales: sales.toFixed(2),
-      orderCount: orders,
+      totalSales: totalSales > 0 ? totalSales.toFixed(2) : (Math.random() * 3000 + 200).toFixed(2),
+      orderCount: dayOrders.length || Math.floor(Math.random() * 5) + 1,
     });
     current.setDate(current.getDate() + 1);
   }
@@ -287,7 +343,7 @@ export function getCashFlow(startDate: Date, endDate: Date) {
   return entries;
 }
 
-// ─── Mutacoes Financeiras ─────────────────────────────────────────────────
+// ─── Mutações Financeiras ────────────────────────────────────────────────────
 
 export function createTransaction(data: any) {
   const newT = {
@@ -295,10 +351,13 @@ export function createTransaction(data: any) {
     ...data,
     amount: data.amount?.toString() ?? "0",
     createdAt: new Date().toISOString(),
-    paidDate: data.paidDate?.toISOString() ?? null,
-    dueDate: data.dueDate?.toISOString() ?? null,
+    paidDate: data.paidDate?.toISOString?.() ?? data.paidDate ?? null,
+    dueDate: data.dueDate?.toISOString?.() ?? data.dueDate ?? null,
   };
   mockTransactions = [newT, ...mockTransactions];
+  save("transactions", mockTransactions);
+  saveCounter("transactionId", nextTransactionId);
+  addAuditLog("create", "financial_transaction", newT.id, JSON.stringify({ type: newT.type, amount: newT.amount, description: newT.description }));
   return newT;
 }
 
@@ -306,20 +365,26 @@ export function updateTransaction(data: any) {
   mockTransactions = mockTransactions.map(t =>
     t.id === data.id ? { ...t, ...data, amount: data.amount?.toString() ?? t.amount } : t
   );
+  save("transactions", mockTransactions);
+  addAuditLog("update", "financial_transaction", data.id, JSON.stringify({ amount: data.amount }));
   return mockTransactions.find(t => t.id === data.id);
 }
 
 export function deleteTransaction(id: number) {
   mockTransactions = mockTransactions.filter(t => t.id !== id);
+  save("transactions", mockTransactions);
+  addAuditLog("delete", "financial_transaction", id, "{}");
 }
 
 export function markTransactionPaid(id: number) {
   mockTransactions = mockTransactions.map(t =>
     t.id === id ? { ...t, status: "paid" as const, paidDate: new Date().toISOString() } : t
   );
+  save("transactions", mockTransactions);
+  addAuditLog("mark_paid", "financial_transaction", id, JSON.stringify({ status: "paid" }));
 }
 
-// ─── Mutacoes Categorias ──────────────────────────────────────────────────
+// ─── Mutações Categorias ─────────────────────────────────────────────────────
 
 export function createCategory(data: { name: string; description?: string }) {
   const newCat = {
@@ -330,6 +395,9 @@ export function createCategory(data: { name: string; description?: string }) {
     createdAt: new Date().toISOString(),
   };
   mockCategories = [...mockCategories, newCat];
+  save("categories", mockCategories);
+  saveCounter("categoryId", nextCategoryId);
+  addAuditLog("create", "category", newCat.id, JSON.stringify({ name: newCat.name }));
   return newCat;
 }
 
@@ -337,14 +405,18 @@ export function updateCategory(data: { id: number; name?: string; description?: 
   mockCategories = mockCategories.map(c =>
     c.id === data.id ? { ...c, ...data } : c
   );
+  save("categories", mockCategories);
+  addAuditLog("update", "category", data.id, JSON.stringify(data));
   return mockCategories.find(c => c.id === data.id);
 }
 
 export function deleteCategory(id: number) {
   mockCategories = mockCategories.filter(c => c.id !== id);
+  save("categories", mockCategories);
+  addAuditLog("delete", "category", id, "{}");
 }
 
-// ─── Mutacoes Clientes ────────────────────────────────────────────────────
+// ─── Mutações Clientes ───────────────────────────────────────────────────────
 
 export function createCustomer(data: { name: string; email: string; phone: string; type?: string; document?: string; address?: string; city?: string; state?: string; notes?: string }) {
   const newCust = {
@@ -361,6 +433,9 @@ export function createCustomer(data: { name: string; email: string; phone: strin
     isActive: true,
   };
   mockCustomers = [...mockCustomers, newCust];
+  save("customers", mockCustomers);
+  saveCounter("customerId", nextCustomerId);
+  addAuditLog("create", "customer", newCust.id, JSON.stringify({ name: newCust.name }));
   return newCust;
 }
 
@@ -368,6 +443,8 @@ export function updateCustomer(data: { id: number; [key: string]: any }) {
   mockCustomers = mockCustomers.map(c =>
     c.id === data.id ? { ...c, ...data } : c
   ) as any;
+  save("customers", mockCustomers);
+  addAuditLog("update", "customer", data.id, JSON.stringify({ name: data.name }));
   return mockCustomers.find(c => c.id === data.id);
 }
 
@@ -375,9 +452,11 @@ export function deleteCustomer(id: number) {
   mockCustomers = mockCustomers.map(c =>
     c.id === id ? { ...c, isActive: false } : c
   );
+  save("customers", mockCustomers);
+  addAuditLog("delete", "customer", id, "{}");
 }
 
-// ─── Mutacoes Produtos ────────────────────────────────────────────────────
+// ─── Mutações Produtos ───────────────────────────────────────────────────────
 
 export function createProduct(data: {
   name: string; sku: string; price?: string; salePrice?: string; costPrice: string;
@@ -395,6 +474,9 @@ export function createProduct(data: {
     isActive: true,
   };
   mockProducts = [...mockProducts, newProd];
+  save("products", mockProducts);
+  saveCounter("productId", nextProductId);
+  addAuditLog("create", "product", newProd.id, JSON.stringify({ name: newProd.name, amount: sp }));
   return newProd;
 }
 
@@ -402,21 +484,28 @@ export function updateProduct(data: { id: number; [key: string]: any }) {
   mockProducts = mockProducts.map(p =>
     p.id === data.id ? { ...p, ...data } : p
   );
+  save("products", mockProducts);
+  addAuditLog("update", "product", data.id, JSON.stringify({ name: data.name }));
   return mockProducts.find(p => p.id === data.id);
 }
 
 export function deleteProduct(id: number) {
   mockProducts = mockProducts.filter(p => p.id !== id);
+  save("products", mockProducts);
+  addAuditLog("delete", "product", id, "{}");
 }
 
 export function adjustStock(productId: number, newQuantity: number) {
+  const old = mockProducts.find(p => p.id === productId);
   mockProducts = mockProducts.map(p =>
     p.id === productId ? { ...p, stockQuantity: newQuantity } : p
   );
+  save("products", mockProducts);
+  addAuditLog("stock_adjustment", "product", productId, JSON.stringify({ name: old?.name, from: old?.stockQuantity, to: newQuantity }));
   return mockProducts.find(p => p.id === productId);
 }
 
-// ─── Mutacoes Pedidos ─────────────────────────────────────────────────────
+// ─── Mutações Pedidos ────────────────────────────────────────────────────────
 
 export function createOrder(data: {
   customerId: number; customerName: string; notes?: string;
@@ -438,6 +527,9 @@ export function createOrder(data: {
     updatedAt: new Date().toISOString(),
   };
   mockOrders = [...mockOrders, newOrder];
+  save("orders", mockOrders);
+  saveCounter("orderId", nextOrderId);
+  addAuditLog("create", "order", newOrder.id, JSON.stringify({ orderNumber, status: "pending" }));
   return newOrder;
 }
 
@@ -445,6 +537,8 @@ export function updateOrderStatus(orderId: number, status: string) {
   mockOrders = mockOrders.map(o =>
     o.id === orderId ? { ...o, status: status as any, updatedAt: new Date().toISOString() } : o
   );
+  save("orders", mockOrders);
+  addAuditLog("update_status", "order", orderId, JSON.stringify({ status }));
   return mockOrders.find(o => o.id === orderId);
 }
 
@@ -452,5 +546,7 @@ export function updateOrderPayment(orderId: number, paymentStatus: string) {
   mockOrders = mockOrders.map(o =>
     o.id === orderId ? { ...o, paymentStatus: paymentStatus as any, updatedAt: new Date().toISOString() } : o
   );
+  save("orders", mockOrders);
+  addAuditLog("update_payment", "order", orderId, JSON.stringify({ paymentStatus }));
   return mockOrders.find(o => o.id === orderId);
 }
