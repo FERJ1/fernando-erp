@@ -1,4 +1,4 @@
-import { Route, Switch } from "wouter";
+import { Route, Switch, Router } from "wouter";
 import { Toaster } from "sonner";
 import Home from "./pages/Home";
 import Clientes from "./pages/Clientes";
@@ -11,9 +11,11 @@ import Insights from "./pages/Insights";
 import Auditoria from "./pages/Auditoria";
 import Configuracoes from "./pages/Configuracoes";
 
+const base = import.meta.env.BASE_URL.replace(/\/$/, "");
+
 export default function App() {
   return (
-    <>
+    <Router base={base}>
       <Toaster position="top-right" richColors />
       <Switch>
         <Route path="/" component={Home} />
@@ -35,6 +37,6 @@ export default function App() {
           </div>
         </Route>
       </Switch>
-    </>
+    </Router>
   );
 }
